@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 from load_data import load_data_1, load_data_2
-from model import MLP
+from examples.model import MLP
 
 dataset = 'cora'
 feature, label, _ = load_data_2(dataset)

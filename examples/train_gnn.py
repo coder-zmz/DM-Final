@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 from load_data import load_data_1, load_data_2, row_normalize
-from model import GNN
+from examples.model import GNN
 
 dataset = 'cora'
 feature, label, adj = load_data_2(dataset)
