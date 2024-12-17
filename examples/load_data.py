@@ -1,5 +1,5 @@
 import numpy as np
-from text_analyse import text_embedding
+from examples.text_analyse import text_embedding
 
 def row_normalize(mx):
     """Row-normalize matrix"""
