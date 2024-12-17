@@ -6,6 +6,7 @@ from nltk.stem import WordNetLemmatizer
 
 warnings.filterwarnings('ignore')
 
+
 params_count = {
     'analyzer': 'word',     # 取值'word'-分词结果为词级、'char'-字符级(结果会出现he is，空格在中间的情况)、'char_wb'-字符级(以单词为边界)，默认值为'word'
     'binary': False,        # boolean类型，设置为True，则所有非零计数都设置为1.（即，tf的值只有0和1，表示出现和不出现）
@@ -32,44 +33,71 @@ params_tfidf = {
     'use_idf': True,        # 是否计算idf，布尔值，False时idf=1。
 }
 
-
 def text_embedding(data):
-    '''
+    """
+    将输入的文本数据转换为文本嵌入向量，使用词袋模型和 TF-IDF 技术。
+
+    Args:
+        data: 输入文本数据，可以是字符串列表或其他可迭代对象。
+
+    Returns:
+        文本嵌入向量，以 NumPy 数组的形式返回。
+    """
+
+    # 定义一个用于文本预处理的类，继承自 CountVectorizer 的 tokenizer 参数
     class LemmaTokenizer:
+        """
+        用于文本预处理的类，进行词形还原和简单的过滤。
+        """
         def __init__(self):
+            # 初始化 WordNetLemmatizer 对象，用于词形还原
             self.wnl = WordNetLemmatizer()
 
         def __call__(self, doc):
-            words = []
-            for t in word_tokenize(doc):
+            words = []  # 初始化一个空列表，用于存储预处理后的单词
+            for t in word_tokenize(doc):  # 使用 word_tokenize 对文本进行分词
+                # 过滤掉长度小于 3、包含撇号或波浪号的单词
                 if len(t) < 3 or "'" in t or "~" in t:
                     continue
+                # 对剩余的单词进行词形还原，并将结果添加到 words 列表中
                 words.append(self.wnl.lemmatize(t))
-            return words
+            return words  # 返回预处理后的单词列表
 
+    # 将 LemmaTokenizer 对象赋值给 params_count['tokenizer']，
+    # 使 CountVectorizer 在创建词袋模型时使用 LemmaTokenizer 来对文本进行预处理。
     params_count['tokenizer'] = LemmaTokenizer()
-    '''
 
-    params_count['max_features'] = 500
-    params_count['max_df'] = 0.8
-    params_count['min_df'] = 0.01
+    # 设置 CountVectorizer 的参数
+    params_count['max_features'] = 500  # 限制特征词的数量为 500
+    params_count['max_df'] = 0.8  # 忽略文档频率高于 0.8 的词
+    params_count['min_df'] = 0.01  # 忽略文档频率低于 0.01 的词
+    params_count['ngram_range'] = (1,1) #提取unigrams
 
+    # 创建 CountVectorizer 对象，并使用 params_count 中的参数进行配置
     cv = CountVectorizer(**params_count)
+    # 使用 CountVectorizer 拟合数据并转换文本
     x_cv = cv.fit_transform(data)
 
+    # 获取特征词列表
     vocabulary = cv.get_feature_names_out()
-    print(vocabulary)
-    # print(x_cv.toarray())
+    # 打印特征词列表
+    print(f"特征词列表：\n{vocabulary}")
+    # 打印词频矩阵
+    print(f"词频矩阵：\n{x_cv.toarray()}")
+    
 
+    # 创建 TfidfTransformer 对象，并使用 params_tfidf 中的参数进行配置
     tt = TfidfTransformer(**params_tfidf)
+    # 使用 TfidfTransformer 拟合数据并转换文本
     x_tfidf = tt.fit_transform(x_cv.toarray())
-    # print(x_tfidf.toarray())
+    # 打印 TF-IDF 矩阵
+    print(f"TF-IDF 矩阵：\n{x_tfidf.toarray()}")
 
+    # 返回 TF-IDF 矩阵作为文本嵌入向量
     return x_tfidf.toarray()
 
-
 if __name__ == "__main__":
-    train_data = ["Chinese Beijing Chinese",
+    train_data = ["Chinese Beijing Chinese ",
                   "Chinese Chinese Shanghai",
                   "Chinese Macao",
                   "Tokyo Japan Chinese"]
